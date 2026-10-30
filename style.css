@@ -404,7 +404,7 @@ body.locked .big-in:disabled{padding-left:0}
 @media (max-width:860px){.doll-wrap{grid-template-columns:1fr}.doll{max-width:none}.wrow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"m n" "d a"}.w-act{flex-wrap:nowrap}.w-main{grid-area:m}.w-num{grid-area:n}.w-dmgv{grid-area:d}.w-act{grid-area:a}.seid-top{grid-template-columns:1fr}.arow{grid-template-columns:auto minmax(0,1fr) auto auto;}.a-locs{grid-column:2/-1;grid-row:2}.a-enc{display:none}}
 @media (max-width:700px){.id-grid{grid-template-columns:1fr}.portrait{max-width:200px}.chars{grid-template-columns:repeat(4,minmax(0,1fr))}.derived{grid-template-columns:repeat(2,minmax(0,1fr))}.trackers{grid-template-columns:1fr}.plist{grid-template-columns:1fr}.rgrid{grid-template-columns:repeat(4,minmax(0,1fr))}.grow{grid-template-columns:minmax(0,1fr) 56px 56px auto}.grow input:nth-child(4){grid-column:1/-2}.grow.head{display:none}.sec-t{font-size:30px}}
 @media (max-width:520px){.fields{grid-template-columns:1fr}.fields.wide2{grid-template-columns:1fr}.fields.wide2 .fld.wide{grid-column:auto}.sp-grid{grid-template-columns:1fr}.brk{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
 
 
 /* ===== «Серебряная книга»: индиго, золото, звёзды ===== */
@@ -649,7 +649,7 @@ body.book #book{display:block}
   .bk-kin,.bk-bind{grid-column:auto}
   .bk-title{font-size:24px}
 }
-@media (prefers-reduced-motion:reduce){.bk-gold,.bk-row b.glow,.bk-star.on,.bk-futh button.kn,.bk-ink{animation:none}}
+
 .bk-ink.done{animation:none}
 
 /* ===== Закладки разделов слева ===== */
@@ -737,3 +737,115 @@ body.gal-open{overflow:hidden}
 .end-nav{display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)}
 .end-body textarea{width:100%;box-sizing:border-box}
 .modal,.sheet{z-index:40}.toast{z-index:50}
+.ex-btns{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.ex-btns .btn{min-height:50px}
+.ex-out{min-height:1.2em;margin:4px 0;font-weight:700}
+.ex-out.ok{color:var(--ok)}.ex-out.err{color:var(--danger)}
+
+/* ===== Анимации ===== */
+body.no-anim *,body.no-anim *::before,body.no-anim *::after{animation:none!important;transition:none!important}
+@keyframes a-up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes a-fade{from{opacity:0}to{opacity:1}}
+@keyframes a-pop{0%{transform:scale(.55);opacity:0}60%{transform:scale(1.14);opacity:1}100%{transform:scale(1)}}
+@keyframes a-just{0%{transform:scale(1)}35%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes a-ring{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 70%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+@keyframes a-shake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+@keyframes a-spin{to{transform:rotate(360deg)}}
+@keyframes a-aura{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.95;transform:scale(1.05)}}
+@keyframes a-rise{0%{opacity:0;transform:translateY(0) scale(.8)}20%{opacity:.85}100%{opacity:0;transform:translateY(-150px) scale(1.15)}}
+@keyframes a-burst{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(.6)}100%{opacity:0;transform:rotate(var(--a)) translateY(-70px) scale(1.2)}}
+@keyframes a-hit{0%{filter:none;transform:none}25%{filter:drop-shadow(0 0 22px #e2735a) brightness(1.3);transform:translateX(-5px)}50%{transform:translateX(4px)}100%{filter:none;transform:none}}
+@keyframes a-heal{0%,100%{filter:none}35%{filter:drop-shadow(0 0 22px #9fd07a) brightness(1.2)}}
+@keyframes a-mp{0%,100%{filter:none}35%{filter:drop-shadow(0 0 20px #9fc9ec) brightness(1.25)}}
+@keyframes a-ink{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes a-lit{0%{opacity:0;transform:translateY(16px) scale(.85)}60%{opacity:1;transform:translateY(-4px) scale(1.06)}100%{opacity:1;transform:none}}
+@keyframes a-toast{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* смена режима */
+body.mode-in #app{animation:a-fade .45s ease both}
+body.mode-in .bk-page{animation:a-up .6s cubic-bezier(.2,.8,.2,1) both}
+body.mode-in .bk-page:nth-child(2){animation-delay:.12s}
+body.mode-in .bk-page:nth-child(3){animation-delay:.24s}
+body.mode-in .cb>.cb-col:first-child{animation:a-up .55s .05s both}
+body.mode-in .cb>.cb-col:nth-child(3){animation:a-up .55s .15s both}
+body.mode-in .cb-ring{animation:a-pop .7s cubic-bezier(.2,.8,.2,1) both}
+body.mode-in .cb-zone{animation:a-pop .45s both}
+body.mode-in .cb-zone:nth-of-type(2){animation-delay:.35s}body.mode-in .cb-zone:nth-of-type(3){animation-delay:.42s}body.mode-in .cb-zone:nth-of-type(4){animation-delay:.49s}body.mode-in .cb-zone:nth-of-type(5){animation-delay:.56s}body.mode-in .cb-zone:nth-of-type(6){animation-delay:.63s}body.mode-in .cb-zone:nth-of-type(7){animation-delay:.7s}body.mode-in .cb-zone:nth-of-type(8){animation-delay:.77s}
+body.mode-in .cb-zone{transform-origin:center}
+
+/* разделы полного листа проявляются при прокрутке */
+#app .sec{transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
+#app .sec:not(.seen){opacity:0;transform:translateY(24px)}
+
+/* отклик на нажатие */
+.just{animation:a-just .38s ease}
+.xchk.just,.bk-x.just,.pip.just,.pipmini.just{animation:a-just .38s ease,a-ring .6s ease-out}
+.qstar.just{animation:a-just .38s ease}
+.bk-star.just{animation:a-just .38s ease,bk-glow 3s ease-in-out infinite}
+.btn,.chip,.cb-chip,.bk-ch,.bk-rb,.qnav button,.mode-tg button{transition:transform .12s ease,background .2s,color .2s,border-color .2s,box-shadow .2s}
+.btn:active,.chip:active,.cb-chip:active,.bk-ch:active,.cb-ch:active,.pmb:active{transform:scale(.95)}
+.cb-chip:hover,.bk-ch:hover{box-shadow:0 0 14px color-mix(in srgb,var(--acc) 25%,transparent)}
+
+/* бросок кубика */
+.res{position:relative}
+.res .die100{position:relative;display:inline-block}
+.res.rolling b,.res.rolling small{opacity:0}
+.res.rolling .die100{color:var(--fg);filter:blur(.4px)}
+.res.land{animation:a-pop .45s cubic-bezier(.2,.8,.2,1)}
+.res.land b,.res.land small{animation:a-fade .4s ease both}
+.res.land.crit{box-shadow:0 0 30px color-mix(in srgb,var(--crit) 55%,transparent)}
+.res.land.fumb{animation:a-shake .5s ease}
+.burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.burst i{position:absolute;left:-7px;top:-10px;font-style:normal;font-size:18px;color:var(--crit);animation:a-burst .9s ease-out forwards}
+.res.spec .burst i{color:var(--spec)}
+.dmg b.land{display:inline-block;animation:a-pop .45s ease}
+.sheet:not([hidden]) .sheet-card{animation:a-up .35s cubic-bezier(.2,.8,.2,1)}
+.modal:not([hidden]) .m-card{animation:a-up .35s cubic-bezier(.2,.8,.2,1)}
+.toast:not([hidden]){animation:a-toast .3s ease}
+
+/* боевой круг */
+.cb-ring{overflow:visible}
+.cb-band{position:absolute;inset:-4.7%;width:109.4%;height:109.4%;animation:a-spin 160s linear infinite;pointer-events:none}
+.cb-band text{font:17px var(--f-rune);fill:color-mix(in srgb,var(--acc) 60%,transparent);letter-spacing:2px}
+.cb-band tspan.kn{fill:var(--gold-hi)}
+.cb-aura{position:absolute;left:7.5%;top:7.5%;width:85%;height:85%;border-radius:50%;box-shadow:0 0 50px 8px color-mix(in srgb,var(--spec) 45%,transparent),inset 0 0 40px color-mix(in srgb,var(--spec) 30%,transparent);animation:a-aura 4.5s ease-in-out infinite;pointer-events:none}
+.cb-float{position:absolute;left:8.6%;top:8.6%;width:82.8%;height:82.8%;border-radius:50%;overflow:hidden;pointer-events:none}
+.cb-float i{position:absolute;bottom:6%;font:22px var(--f-rune);font-style:normal;color:#5fa8e8;text-shadow:0 0 10px #9fc9ec;opacity:0;animation:a-rise 7.8s ease-in infinite}
+.cb-ring.fx-dmg svg{animation:a-hit .55s ease}
+.cb-ring.fx-heal svg{animation:a-heal .7s ease}
+.cb-ring.fx-mpout svg,.cb-ring.fx-mpin svg{animation:a-mp .7s ease}
+.cb-ring.fx-dmg .cb-hp b,.cb-ring.fx-heal .cb-hp b,.cb-ring.fx-mpout .cb-mp b,.cb-ring.fx-mpin .cb-mp b{display:inline-block;animation:a-pop .4s ease}
+#combat{overflow-x:clip}
+
+/* гальдур: руны загораются по очереди, слова проступают */
+.gal-runes span{opacity:0;animation:a-lit .6s cubic-bezier(.2,.8,.2,1) forwards}
+.gal-runes span:nth-child(1){animation-delay:.15s}.gal-runes span:nth-child(2){animation-delay:.5s}.gal-runes span:nth-child(3){animation-delay:.85s}.gal-runes span:nth-child(4){animation-delay:1.2s}.gal-runes span:nth-child(5){animation-delay:1.55s}.gal-runes span:nth-child(6){animation-delay:1.9s}.gal-runes span:nth-child(7){animation-delay:2.25s}.gal-runes span:nth-child(8){animation-delay:2.6s}.gal-runes span:nth-child(9){animation-delay:2.95s}
+.gal-in h2{animation:a-fade .6s ease both}
+.gal-text{animation:a-ink 2.6s steps(40,end) .6s both}
+.gal-fx,.gal-hint{animation:a-fade .8s 2.4s both}
+.gal-ov:not([hidden]){animation:a-fade .35s ease}
+
+/* книга */
+.bk-scr,.bk-bind,.bk-ch{transition:transform .2s,box-shadow .25s,border-color .2s}
+.bk-scr:hover,.bk-bind:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.bk-scr.ready{animation:bk-ready 3s ease-in-out infinite}
+@keyframes bk-ready{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 18px color-mix(in srgb,var(--gold-hi) 35%,transparent)}}
+.bk-ring{animation:a-aura 4s ease-in-out infinite}
+.qnav button.on i{display:inline-block;animation:a-just .4s ease}
+
+/* ===== Портрет крупно ===== */
+.zoomable{display:block;padding:0;margin:0;border:0;background:none;cursor:zoom-in;width:100%;height:100%;border-radius:inherit;position:relative}
+.zoomable img{display:block}
+.bk-por .zoomable{width:140px;height:140px;border-radius:50%}
+.bk-por .zoomable img{width:140px;height:140px}
+.portrait .zoomable::after,.bk-por .zoomable::after{content:"⤢";position:absolute;right:6px;bottom:6px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(10,16,30,.7);color:var(--gold-hi);font-size:15px;opacity:.85}
+.bk-por .zoomable::after{right:4px;bottom:4px}
+.cb-artbtn{position:absolute;inset:0;cursor:zoom-in}
+
+.zoom-ov{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top,0px)) 18px max(18px,env(safe-area-inset-bottom,0px));background:radial-gradient(ellipse at 50% 35%,#16234a 0%,#05080f 80%);cursor:zoom-out;animation:a-fade .3s ease}
+.zoom-ov[hidden]{display:none}
+.zoom-in{margin:0;display:flex;flex-direction:column;align-items:center;gap:12px;max-height:100%}
+.zoom-in img{max-width:min(92vw,1000px);max-height:calc(100dvh - 150px);object-fit:contain;border-radius:10px;background:#fcfcfa;box-shadow:0 0 0 3px #c9962e,0 0 0 10px #10183a,0 0 0 12px #8a6a32,0 30px 80px rgba(0,0,0,.7);animation:a-pop .5s cubic-bezier(.2,.8,.2,1)}
+.zoom-in figcaption{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;justify-content:center}
+.zoom-in figcaption b{font:700 clamp(26px,4vw,40px) var(--f-head)}
+.zoom-in figcaption span{font:italic 20px var(--f-body);color:#c9cfd6}

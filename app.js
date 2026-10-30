@@ -3,7 +3,7 @@
 var A = AOV;
 
 /* ---------- shell ---------- */
-var SHELL = '<header class="top"><div class="top-in"><div class="brand"><span class="eyebrow">Age of Vikings · лист героя</span><div class="name-row"><b id="hdr-name">Герой</b><button type="button" class="lock-btn" id="btn-lock" aria-pressed="false"></button></div></div>'+
+var SHELL = '<header class="top"><div class="top-in"><div class="brand"><span class="eyebrow">Age of Vikings · лист героя</span><div class="name-row"><b id="hdr-name" class="gold">Герой</b><button type="button" class="lock-btn" id="btn-lock" aria-pressed="false"></button></div></div>'+
   '<div class="vitals" id="vitals"></div>'+
   '<div class="actions"><span id="save-status" class="status" role="status" aria-live="polite"></span>'+
   '<div class="mode-tg" role="group" aria-label="Режим листа"><button type="button" data-mode="book">Книга</button><button type="button" data-mode="full">Полный</button><button type="button" data-mode="combat">Боевой</button></div>'+
@@ -18,7 +18,8 @@ var SHELL = '<header class="top"><div class="top-in"><div class="brand"><span cl
   '<div id="sheet" class="sheet" hidden><div class="sheet-card" role="dialog" aria-modal="true" aria-label="Бросок"><button type="button" class="m-x" data-sclose="1" aria-label="Закрыть">×</button><div id="s-body"></div></div></div>'+
   '<div id="modal" class="modal" hidden><div class="m-card" role="dialog" aria-modal="true"><button type="button" class="m-x" data-close="1" aria-label="Закрыть">×</button><div id="m-body"></div></div></div>'+
   '<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>'+
-  '<div id="galdur" class="gal-ov" hidden role="dialog" aria-modal="true" aria-label="Гальдур"></div>';
+  '<div id="galdur" class="gal-ov" hidden role="dialog" aria-modal="true" aria-label="Гальдур"></div>'+
+  '<div id="zoom" class="zoom-ov" hidden role="dialog" aria-modal="true" aria-label="Портрет"></div>';
 document.getElementById("page-shell").innerHTML = SHELL;
 (function(){ var st='<div class="stars" aria-hidden="true">'; for (var i=0;i<28;i++){ st+='<i style="left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*100).toFixed(1)+'%;animation-delay:'+(Math.random()*3.4).toFixed(2)+'s"></i>'; } document.body.insertAdjacentHTML("afterbegin", st+'</div>'); })();
 
@@ -31,7 +32,7 @@ var PALETTES = [
 function applyPalette(k){ if (!PALETTES.some(function(p){return p.k===k;})) k="silver"; if (k==="silver") document.documentElement.removeAttribute("data-palette"); else document.documentElement.setAttribute("data-palette",k); var m=document.querySelector('meta[name="theme-color"]'); var P=PALETTES.filter(function(p){return p.k===k;})[0]; if (m) m.setAttribute("content", P.c[0]); return k; }
 var palette = "silver"; try { palette = localStorage.getItem("aov-palette") || "silver"; } catch(e){}
 palette = applyPalette(palette);
-function paletteHtml(){ return '<h2>Цветовая тема</h2><div class="pal-list">'+PALETTES.map(function(p){ return '<button type="button" class="pal'+(p.k===palette?' on':'')+'" data-pal="'+p.k+'" style="background:'+p.c[1]+';color:'+p.c[3]+';border-color:'+p.c[2]+'"><span class="sw">'+p.c.map(function(c){return '<i style="background:'+c+'"></i>';}).join('')+'</span><b>'+p.n+'</b><small>'+p.d+'</small></button>'; }).join('')+'</div><p class="hint">Тема запоминается на этом устройстве.</p>'+wakeHtml(); }
+function paletteHtml(){ return '<h2>Цветовая тема</h2><div class="pal-list">'+PALETTES.map(function(p){ return '<button type="button" class="pal'+(p.k===palette?' on':'')+'" data-pal="'+p.k+'" style="background:'+p.c[1]+';color:'+p.c[3]+';border-color:'+p.c[2]+'"><span class="sw">'+p.c.map(function(c){return '<i style="background:'+c+'"></i>';}).join('')+'</span><b>'+p.n+'</b><small>'+p.d+'</small></button>'; }).join('')+'</div><p class="hint">Тема запоминается на этом устройстве.</p>'+animHtml()+wakeHtml(); }
 
 /* ---------- helpers ---------- */
 function esc(v){ return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
@@ -176,7 +177,7 @@ var SECS = [["hero","Герой"],["combat","Бой"],["skills","Умения"],
 
 function renderHero(){
   var i=state.info, P=A.PERSONALITY[i.personality];
-  var h='<div class="id-grid"><div class="portrait">'+(state.portrait?'<img src="'+esc(state.portrait)+'" alt="Портрет героя">':'<div class="ph"><span>ᚨ</span>Нет портрета</div>')+
+  var h='<div class="id-grid"><div class="portrait">'+(state.portrait?'<button type="button" class="zoomable" data-artzoom="portrait" aria-label="Показать портрет крупно"><img src="'+esc(state.portrait)+'" alt="Портрет героя"></button>':'<div class="ph"><span>ᚨ</span>Нет портрета</div>')+
     '<label class="btn ghost small file" for="portrait-in">Портрет<input type="file" id="portrait-in" accept="image/*" hidden></label></div><div class="fields">'+
     field("Имя","info.name")+field("Прозвище","info.nick")+field("Значение имени","info.meaning")+field("Игрок","info.player")+
     field("Пол","info.gender")+field("Возраст","info.age")+
@@ -399,7 +400,7 @@ function render(){
   renderBookView();
   applyMode();
   window.scrollTo(0,y);
-  topH(); spy();
+  topH(); spy(); revealSecs();
 }
 function refreshVitals(){ document.getElementById("vitals").innerHTML = vitalsHtml(); }
 
@@ -505,12 +506,14 @@ function renderRoll(){
   h+='<div class="rs-go"><button type="button" class="btn big" data-rgo="1">Бросить d100</button><label class="inl own">или свой бросок <input id="rs-own" type="number" inputmode="numeric" min="1" max="100" value="'+esc(rs.own)+'" placeholder="1–100"></label><button type="button" class="btn ghost" data-rown="1">Оценить</button></div>';
   h+='<div class="rs-out" id="rs-out">'+resultHtml()+'</div>';
   sBody.innerHTML=h;
+  if (rs.res && rs.res.fresh){ rs.res.fresh=false; spinDie(sBody.querySelector(".res"), rs.res); }
+  if (rs.dmgFresh){ rs.dmgFresh=false; countUp(sBody.querySelector(".dmg b")); }
 }
 function resultHtml(){
   if (!rs.res) return '';
   var r=rs.res, L=LEVELS[r.level];
   var h = r.direct ? '<div class="chips">'+["succ","spec","crit"].map(function(l){ return '<button type="button" class="chip'+(r.level===l?' on':'')+'" data-dlev="'+l+'">'+LEVELS[l][0]+'</button>'; }).join('')+'</div>' :
-    '<div class="res '+L[1]+'"><span class="die100">'+(r.roll===100?'00':r.roll)+'</span><div><b>'+L[0]+'</b><small>против '+r.t+'%'+(r.note?' · '+esc(r.note):'')+'</small></div></div>';
+    '<div class="res '+L[1]+(r.fresh?' rolling':'')+'"><span class="die100">'+(r.roll===100?'00':r.roll)+'</span><div><b>'+L[0]+'</b><small>против '+r.t+'%'+(r.note?' · '+esc(r.note):'')+'</small></div></div>';
   var acts='';
   if (isSuccess(r.level) && rs.xpPath){ var on=!!getPath(state, rs.xpPath+".x"); acts+='<button type="button" class="btn small'+(on?'':' ghost')+'" data-rxp="1">'+(on?'✓ Опыт отмечен':'Отметить опыт')+'</button>'; }
   if (!isSuccess(r.level) && C("pow")>0 && !r.wyrd){ acts+='<button type="button" class="btn small ghost" data-wyrd="succ" title="Тратит 1 ВОЛ навсегда">Вирд: успех (−1 ВОЛ)</button><button type="button" class="btn small ghost" data-wyrd="reroll" title="В бою, раз в день, тратит 1 ВОЛ навсегда">Вирд в бою: переброс</button>'; }
@@ -523,7 +526,7 @@ function resultHtml(){
 function doRoll(own){
   var t=target(), roll = own || rnd(100), lvl=resolve(t,roll);
   if (rs.dpN && rs.dpDev>=0){ var dv=state.devotions[rs.dpDev]; if (dv){ dv.dp=Math.max(0,num(dv.dp)-rs.dpN); } }
-  rs.res={roll:roll, t:t, level:lvl, note:(rs.dpN?rs.dpN+' ОП потрачено':'')}; rs.extra=""; rs.own="";
+  rs.res={roll:roll, t:t, level:lvl, note:(rs.dpN?rs.dpN+' ОП потрачено':''), fresh:true}; rs.extra=""; rs.own="";
   if (rs.kind==="weapon"){ var aw=state.weapons[rs.ref]; if (aw && aw.ammoMax!=null){ var was=num(aw.ammo); aw.ammo=Math.max(0,was-1); rs.res.note=(rs.res.note?rs.res.note+' · ':'')+(was>0?ammoWord(aw)+' −1, осталось '+aw.ammo:'колчан был пуст!'); if (aw.ammo===0 && was>0) toast('Последн'+(aw.sk==="sling"?'ий камень':'яя стрела')+' — колчан пуст'); } }
   state.lastRoll={title:rs.title, roll:roll, t:t, level:lvl, dmg:"", dmgNote:""};
   var used=rs.dpN; rs.dpN=0;
@@ -559,6 +562,7 @@ function rollDamage(){
   total=Math.max(0,total);
   if (state.lastRoll && !(rs.res&&rs.res.direct)) { state.lastRoll.dmg=total; state.lastRoll.dmgNote=(lvl!=="succ"?LEVELS[lvl][0].toLowerCase()+' · ':'')+(A.WTYPES[type]||""); } else state.lastRoll={title:w.n, roll:0, t:0, level:lvl, dmg:total, dmgNote:"урон без броска"};
   changed(false);
+  rs.dmgFresh=true;
   rs.extra='<div class="dmg"><b>'+total+'</b><span>урона'+(lvl!=="succ"?' · '+LEVELS[lvl][0].toLowerCase():'')+'</span></div><p class="hint sm">'+parts.join(' · ')+'</p>'+(note?'<p class="hint sm">'+note+'</p>':'');
   renderRoll();
 }
@@ -624,9 +628,10 @@ app.addEventListener("click", appClick);
 function appClick(e){
   var b=e.target.closest("button"); if (!b || b.disabled) return; var d=b.dataset;
   if (d.free){ openRoll({kind:"free", title:"Свободный бросок", sub:"Бросок d100 против своего шанса", freeBase:50, base:function(){ return rs.freeBase; }}); return; }
-  if (d.qstar!==undefined){ var qs=state.skills[+d.qstar]; qs.q=!qs.q; changed(true); return; }
+  if (d.qstar!==undefined){ var qs=state.skills[+d.qstar]; qs.q=!qs.q; changed(true); pulse('[data-qstar="'+d.qstar+'"]'); return; }
   if (d.ammo!==undefined){ var aw2=state.weapons[+d.ammo]; if (!aw2) return; aw2.ammo = d.d==="fill"?num(aw2.ammoMax):Math.max(0,Math.min(num(aw2.ammoMax),num(aw2.ammo)+(+d.d))); changed(true); if (d.d==="fill") toast(ammoWord(aw2,true)+" собраны: "+aw2.ammo+" из "+aw2.ammoMax); return; }
   if (d.bigg!==undefined){ showGaldur(+d.bigg); return; }
+  if (d.artzoom){ showZoom(d.artzoom); return; }
   if (d.edit){ setMode("full"); setTimeout(function(){ scrollToSec(d.edit); },30); return; }
   if (d.artup){ document.getElementById("art-in").click(); return; }
   if (d.artdel){ state.combat.art=""; changed(true); return; }
@@ -643,17 +648,17 @@ function appClick(e){
   if (d.rollraw){ var rk=d.rollraw; openRoll({kind:"raw", ref:rk, title:rk==="rep"?"Репутация":"Статус", sub:"Бросок d100", base:function(){ return state[rk]; }}); return; }
   if (d.attack!==undefined){ var ai=+d.attack, w=state.weapons[ai], s=skillByKey(w.sk); openRoll({kind:"weapon", ref:ai, title:w.n, sub:(s?s.n:"Без умения")+" · "+(A.WTYPES[w.t]||""), base:function(){ var q=skillByKey(state.weapons[ai].sk); return q?q.v:0; }, xpPath:s?"skills."+state.skills.indexOf(s):null}); return; }
   if (d.dmg!==undefined){ var di=+d.dmg; openRoll({kind:"weapon", ref:di, title:state.weapons[di].n, sub:"Урон по итогу атаки", direct:true, base:function(){ var q=skillByKey(state.weapons[di].sk); return q?q.v:0; }}); rs.res={direct:true,roll:0,t:0,level:"succ"}; rollDamage(); return; }
-  if (d.hp){ state.hp.lost=Math.max(-9, num(state.hp.lost)-(+d.hp)); changed(true); return; }
+  if (d.hp){ state.hp.lost=Math.max(-9, num(state.hp.lost)-(+d.hp)); ringFx=(+d.hp<0?"dmg":"heal"); changed(true); return; }
   if (d.hpdlg){ openModal('<h2>Урон по общим ОЗ</h2><p class="hint">Яд, огонь по всему телу, холод — всё, что не бьёт в одну зону.</p><div class="dlg-row"><label class="fld"><span>Урон</span><input id="gd-v" type="number" inputmode="numeric"></label><button type="button" class="btn warn" data-gdmg="1">Получить</button><button type="button" class="btn" data-gheal="1">Вылечить</button></div>'); return; }
-  if (d.mp){ state.mp.spent=Math.max(0, Math.min(mpMax(), num(state.mp.spent)+(+d.mp))); changed(true); return; }
+  if (d.mp){ state.mp.spent=Math.max(0, Math.min(mpMax(), num(state.mp.spent)+(+d.mp))); ringFx=(+d.mp>0?"mpout":"mpin"); changed(true); return; }
   if (d.mprest){ state.mp.spent=Math.max(0,num(state.mp.spent)-Math.ceil(C("pow")/4)); changed(true); toast("Отдых 6 часов: +"+Math.ceil(C("pow")/4)+" ОМ"); return; }
   if (d.mpfull){ state.mp.spent=0; changed(true); toast("Сутки отдыха: ОМ восстановлены (залог остаётся)"); return; }
   if (d.loc){ hiLoc=d.loc; openModal(dmgDlg(d.loc)); var dv=document.getElementById("dd-v"); if (dv) dv.focus(); return; }
   if (d.rollloc){ var lr=rollLocation(); render(); toast("d20 = "+lr.r+": <b>"+LOCN[lr.k][1]+"</b>"); return; }
   if (d.healweek){ var hr=healRate(), healed=0; A.LOCS.forEach(function(l){ var k=l[0], dmg=num(state.hp.loc[k]); if (dmg>0){ var h=Math.min(hr,dmg); state.hp.loc[k]=dmg-h; healed+=h; } }); state.hp.lost=Math.max(0,num(state.hp.lost)-healed); changed(true); toast(healed?"Неделя отдыха: вылечено "+healed+" ОЗ":"Ран нет"); return; }
   if (d.healall){ state.hp.lost=0; state.hp.loc={}; hiLoc=null; changed(true); return; }
-  if (d.pip){ var pv=+d.v, pc=num(getPath(state,d.pip)); setPath(state,d.pip, pc===pv?pv-1:pv); changed(true); return; }
-  if (d.xchk){ var o=getPath(state,d.xchk); o.x=!o.x; changed(true); return; }
+  if (d.pip){ var pv=+d.v, pc=num(getPath(state,d.pip)); setPath(state,d.pip, pc===pv?pv-1:pv); changed(true); pulse('[data-pip="'+d.pip+'"][data-v="'+d.v+'"]'); return; }
+  if (d.xchk){ var o=getPath(state,d.xchk); o.x=!o.x; changed(true); pulse('[data-xchk="'+d.xchk+'"]'); return; }
   if (d.xp){ xpRun=null; openModal(xpHtml()); return; }
   if (d.catinfo){ openModal(catInfoHtml(d.catinfo)); return; }
   if (d.del){ var arr=getPath(state,d.del); arr.splice(+d.i,1); if (d.del==="weapons") openW={}; changed(true); return; }
@@ -692,7 +697,7 @@ function appClick(e){
 var combatEl=document.getElementById("combat");
 var mode="full"; try { mode=localStorage.getItem("aov-mode")||"book"; } catch(e){}
 function applyMode(){ document.body.classList.toggle("combat", mode==="combat"); document.body.classList.toggle("book", mode==="book"); document.querySelectorAll("[data-mode]").forEach(function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-mode")===mode)); }); }
-function setMode(m){ mode=m; try{ localStorage.setItem("aov-mode",m); }catch(x){} renderCombatView(); renderBookView(); applyMode(); window.scrollTo(0,0); topH(); spy(); }
+function setMode(m){ mode=m; try{ localStorage.setItem("aov-mode",m); }catch(x){} renderCombatView(); renderBookView(); applyMode(); window.scrollTo(0,0); topH(); spy(); modeIn(); }
 var DEF_POS={hd:[49.2,20.3], ra:[27.8,50], la:[72.9,50], ch:[50.8,41.7], ab:[50.8,53.8], rl:[33.1,72.6], ll:[70.3,72.6]};
 var ZSHORT={hd:"Голова",ra:"Пр. рука",la:"Лев. рука",ch:"Грудь",ab:"Живот",rl:"Пр. нога",ll:"Лев. нога"};
 function arcPath(r,a0,a1){ var x0=320+r*Math.cos(a0), y0=320+r*Math.sin(a0), x1=320+r*Math.cos(a1), y1=320+r*Math.sin(a1); return "M"+x0.toFixed(1)+" "+y0.toFixed(1)+" A"+r+" "+r+" 0 "+((a1-a0)>Math.PI?1:0)+" 1 "+x1.toFixed(1)+" "+y1.toFixed(1); }
@@ -714,15 +719,16 @@ function renderCombatView(){
   if (worn.length) h+='<div class="cb-card"><h2 class="cb-h">Броня</h2><span class="cb-sub" style="font-style:normal">'+esc(worn.join(", "))+'</span></div>';
   h+='</div>';
   /* centre */
-  h+='<div class="cb-col cb-mid"><div class="cb-ring"><svg viewBox="0 0 640 640" role="img" aria-label="Здоровье '+hc+' из '+hm+', магия '+ma+' из '+mm+(ml?', '+ml+' в залоге':'')+'">'+
+  var fx=ringFx; ringFx="";
+  h+='<div class="cb-col cb-mid"><div class="cb-ring'+(fx?' fx-'+fx:'')+'">'+bandHtml()+'<svg viewBox="0 0 640 640" role="img" aria-label="Здоровье '+hc+' из '+hm+', магия '+ma+' из '+mm+(ml?', '+ml+' в залоге':'')+'">'+
     '<circle cx="320" cy="320" r="316" fill="none" stroke="var(--acc)" stroke-width="1.5"></circle>'+
     segRing(300,20,hm,function(k){ return k<hc?["#e2735a"]:["#3a1f1b"]; },2.5)+
     segRing(272,9,Math.max(1,mm),function(k){ return k<ma?["#9fc9ec"]:k<ma+ml?["#d8b25a","lockpulse"]:["#24334a"]; },2)+
-    '</svg><div class="cb-disc" style="background:'+esc(cb.art?cb.bg||"#fcfcfa":"color-mix(in srgb,var(--panel) 70%,var(--bg))")+'">'+
-    (cb.art?'<img src="'+esc(cb.art)+'" alt="'+esc(i.name||"Герой")+'" draggable="false">':'<div class="noart"><span>ᚨ</span>Добавь боевой арт героя — на нём появятся зоны поражения</div>')+
+    '</svg><div class="cb-aura" aria-hidden="true"></div><div class="cb-disc" style="background:'+esc(cb.art?cb.bg||"#fcfcfa":"color-mix(in srgb,var(--panel) 70%,var(--bg))")+'">'+
+    (cb.art?'<button type="button" class="zoomable cb-artbtn" data-artzoom="art" aria-label="Показать арт крупно"><img src="'+esc(cb.art)+'" alt="'+esc(i.name||"Герой")+'" draggable="false"></button>':'<div class="noart"><span>ᚨ</span>Добавь боевой арт героя — на нём появятся зоны поражения</div>')+
     A.LOCS.map(function(l){ var k=l[0], p=(cb.pos&&cb.pos[k])||DEF_POS[k]; return '<div class="cb-zone" data-zone="'+k+'" style="left:'+p[0]+'%;top:'+p[1]+'%"><span>'+ZSHORT[k]+' · '+l[2]+'</span><b>'+locMax(k)+' ОЗ · ОБ '+locAP(k)+'</b></div>'; }).join('')+
     '</div>'+
-    '<div class="cb-ctr top cb-hp"><button type="button" class="pmb" data-hp="-1" aria-label="Минус одно очко здоровья">−</button><div class="val"><small>здоровье</small><b>'+hc+'<i> / '+hm+'</i></b></div><button type="button" class="pmb" data-hp="1" aria-label="Плюс одно очко здоровья">+</button></div>'+
+    floatRunes()+'<div class="cb-ctr top cb-hp"><button type="button" class="pmb" data-hp="-1" aria-label="Минус одно очко здоровья">−</button><div class="val"><small>здоровье</small><b>'+hc+'<i> / '+hm+'</i></b></div><button type="button" class="pmb" data-hp="1" aria-label="Плюс одно очко здоровья">+</button></div>'+
     '<div class="cb-ctr bot cb-mp"><button type="button" class="pmb" data-mp="1" aria-label="Потратить очко магии">−</button><div class="val"><b>'+ma+'<i> / '+mm+' ОМ</i></b>'+(ml?'<small style="color:var(--acc)">'+ml+' в залоге</small>':'')+'</div><button type="button" class="pmb" data-mp="-1" aria-label="Вернуть очко магии">+</button></div>'+
     '</div>'+
     (hc<=0?'<p class="cb-status">ОЗ на нуле — смерть в конце раунда без помощи</p>':hc<=2?'<p class="cb-status">1–2 ОЗ — герой без сознания</p>':'')+
@@ -770,7 +776,7 @@ function renderBookView(){
   var h='<div class="bk">';
   /* ===== Книга первая ===== */
   h+='<article class="bk-page"><header class="bk-id">'+
-    '<div class="bk-por">'+(state.portrait?'<img src="'+esc(state.portrait)+'" alt="'+esc(i.name||"Герой")+'">':'<span class="bk-noimg">ᚨ</span>')+'</div>'+
+    '<div class="bk-por">'+(state.portrait?'<button type="button" class="zoomable" data-artzoom="portrait" aria-label="Показать портрет крупно"><img src="'+esc(state.portrait)+'" alt="'+esc(i.name||"Герой")+'"></button>':'<span class="bk-noimg">ᚨ</span>')+'</div>'+
     '<div class="bk-idt"><span class="bk-eye">Книга первая · о человеке'+bkEdit("hero")+'</span><h1 class="bk-gold bk-name">'+esc(i.name||"Новый герой")+'</h1>'+
     ((i.nick||i.meaning)?'<span class="bk-nick">'+[i.nick?'«'+esc(i.nick)+'»':'', i.meaning?'«'+esc(i.meaning)+'»':''].filter(Boolean).join(' · ')+'</span>':'')+
     '<div class="bk-meta">'+[["Пол",String(i.gender||"").toLowerCase()],["Возраст",i.age],["Тип",P?P.n:""],["Фюльгья",i.animal],["Хутор",i.home],["Годи",i.godi],["Игрок",i.player]].filter(function(x){return x[1];}).map(function(x){ return '<span><span class="dim">'+x[0]+'</span> '+esc(x[1])+'</span>'; }).join('')+'</div></div>'+
@@ -857,7 +863,13 @@ app.addEventListener("contextmenu", function(e){ if (e.target.closest(".sk-n,.ch
 modal.addEventListener("click", function(e){
   if (e.target===modal || e.target.closest("[data-close]")){ closeModal(); return; }
   var b=e.target.closest("button"); if (!b || b.disabled) return; var d=b.dataset;
+  if (d.exshare){ exShare(); return; }
+  if (d.exdl){ exDownload(); return; }
+  if (d.excopy){ exCopy(); return; }
+  if (d.imptext){ openModal('<h2>Вставить героя из текста</h2><p class="hint">Вставь сюда текст, скопированный кнопкой «Скопировать как текст». Герой добавится как новый.</p><textarea id="imp-text" rows="8" style="width:100%;box-sizing:border-box" placeholder="{&quot;v&quot;:1, ...}"></textarea><div class="row-btns mt"><button type="button" class="btn" data-impgo="1">Импортировать</button></div><p id="ex-out" class="ex-out"></p>'); return; }
+  if (d.impgo){ try { importText(document.getElementById("imp-text").value); closeModal(); setStatus("Импортирован как новый герой","ok"); toast("Герой добавлен"); } catch(x){ exOut("Это не текст листа викинга — скопируй его целиком."); } return; }
   if (d.snap!==undefined){ restoreSnap(+d.snap); return; }
+  if (d.anim){ animMode=d.anim; try{ localStorage.setItem("aov-anim",animMode); }catch(x){} applyAnim(); mBody.innerHTML=paletteHtml(); if (!animOff()) toast("Анимации включены"); return; }
   if (d.wake){ setWake(!wakeOn); mBody.innerHTML=paletteHtml(); return; }
   if (d.pal){ palette=applyPalette(d.pal); try{ localStorage.setItem("aov-palette",palette); }catch(x){} mBody.innerHTML=paletteHtml(); return; }
   if (d.pickweapon!==undefined){ state.weapons.push(weaponFromCat(A.WEAPONS[+d.pickweapon])); closeModal(); changed(true); return; }
@@ -938,16 +950,42 @@ function charsHtml(){
   return '<h2>Герои на этом устройстве</h2><ul class="char-list">'+ids.map(function(id){ var c=chars[id], i=c.info||{}, P=A.PERSONALITY[i.personality];
     return '<li class="'+(id===curId?'cur':'')+'"><div class="cl-main">'+(c.portrait?'<img src="'+esc(c.portrait)+'" alt="">':'<span class="cl-ph">ᚨ</span>')+'<div><b>'+esc(i.name||'Без имени')+(i.nick?' «'+esc(i.nick)+'»':'')+'</b><small>'+esc([P?P.n:"",i.animal].filter(Boolean).join(' · ')||'—')+'</small><small>'+(c.saved?new Date(c.saved).toLocaleString('ru-RU'):'')+'</small></div></div>'+
       '<div class="row-btns">'+(id===curId?'<span class="tag">Открыт</span>':'<button type="button" class="btn small" data-open="'+id+'">Открыть</button>')+'<button type="button" class="btn ghost small" data-copy="'+id+'">Копия</button><button type="button" class="btn ghost small" data-askdel="'+id+'">Удалить</button></div></li>'; }).join('')+
-    '</ul><div class="row-btns"><button type="button" class="btn" data-newchar="1">+ Новый герой</button><button type="button" class="btn ghost" data-newdemo="1">+ Пример: Ньяль из корбука</button></div><p class="hint">Герои хранятся в памяти этого устройства. Для переноса и резервной копии — «Экспорт» (файл .aov.json) и «Импорт».</p>'+snapsHtml();
+    '</ul><div class="row-btns"><button type="button" class="btn" data-newchar="1">+ Новый герой</button><button type="button" class="btn ghost" data-newdemo="1">+ Пример: Ньяль из корбука</button><button type="button" class="btn ghost" data-imptext="1">Вставить из текста</button></div><p class="hint">Герои хранятся в памяти этого устройства. Для переноса и резервной копии — «Экспорт» (файл .aov.json) и «Импорт».</p>'+snapsHtml();
 }
 document.getElementById("btn-chars").addEventListener("click", function(){ openModal(charsHtml()); });
 document.getElementById("btn-export").addEventListener("click", function(){ doExport(); });
-function doExport(){
-  var name=(state.info.name||"hero").replace(/[^\wА-Яа-яЁё-]+/g,"_")+".aov.json", data=JSON.stringify(state,null,2);
-  try { var file=new File([data],name,{type:"application/json"}); if (navigator.canShare && navigator.canShare({files:[file]})){ navigator.share({files:[file],title:name}).then(function(){ markExported(); }).catch(function(){}); return; } } catch(x){}
-  markExported();
-  var a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([data],{type:"application/json"})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1000);
+var TR={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"ts",ч:"ch",ш:"sh",щ:"sch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
+function exName(){ var n=String(state.info.name||"hero").split("").map(function(c){ var l=c.toLowerCase(), t=TR[l]; if (t===undefined) return c; return c!==l&&t?t.charAt(0).toUpperCase()+t.slice(1):t; }).join("").replace(/[^A-Za-z0-9-]+/g,"_").replace(/^_+|_+$/g,"")||"hero"; return n+"_"+(function(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); })(new Date())+".aov.json"; }
+function exData(){ return JSON.stringify(state); }
+function doExport(){ openModal(exportHtml()); }
+function exportHtml(msg){
+  var t=lastExport(), kb=Math.round(exData().length/1024), sh=!!navigator.share;
+  return '<h2>Резервная копия</h2><p>'+esc(state.info.name||"Герой")+' · файл '+esc(exName())+' · '+kb+' КБ<br><span class="dim">'+(t?'Прошлая копия — '+daysAgo(t):'Копий ещё не было')+'</span></p>'+
+    '<div class="ex-btns">'+(sh?'<button type="button" class="btn" data-exshare="1">Сохранить в «Файлы» / отправить</button>':'')+
+    '<button type="button" class="btn'+(sh?' ghost':'')+'" data-exdl="1">Скачать файл</button>'+
+    '<button type="button" class="btn ghost" data-excopy="1">Скопировать как текст</button></div>'+
+    '<p id="ex-out" class="ex-out">'+(msg||'')+'</p>'+
+    '<p class="hint">На iPad: «Сохранить в Файлы» → открой меню «Поделиться» и выбери «Сохранить в Файлы». Если не сработало — «Скопировать как текст» и вставь в заметку или сообщение себе в Telegram; вернуть героя можно через «Герои» → «Вставить из текста».</p>';
 }
+function exOut(m,ok){ var o=document.getElementById("ex-out"); if (o){ o.innerHTML=m; o.className="ex-out "+(ok?"ok":"err"); } }
+function exShare(){
+  var data=exData(), name=exName(), files=[];
+  try { files.push(new File([data],name,{type:"application/json"})); files.push(new File([data],name,{type:"text/plain"})); } catch(x){ exOut("Этот браузер не умеет делиться файлами — нажми «Скачать файл» или «Скопировать как текст»."); return; }
+  var f=files.filter(function(x){ try { return !navigator.canShare || navigator.canShare({files:[x]}); } catch(e){ return false; } })[0];
+  if (!f){ exOut("Браузер не даёт отправить такой файл — нажми «Скачать файл» или «Скопировать как текст»."); return; }
+  navigator.share({files:[f]}).then(function(){ markExported(); exOut("✓ Копия сохранена.",true); }).catch(function(e){ if (e && e.name==="AbortError") exOut("Отменено — копия не сохранена."); else exOut("Не получилось ("+esc(e&&e.name||"ошибка")+"). Нажми «Скачать файл» или «Скопировать как текст»."); });
+}
+function exDownload(){
+  try { var url=URL.createObjectURL(new Blob([exData()],{type:"application/octet-stream"})), a=document.createElement("a"); a.href=url; a.download=exName(); a.rel="noopener"; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); },4000); markExported();
+    exOut("✓ Файл "+esc(exName())+" скачан — ищи его в «Загрузках»."+(standalone&&/iphone|ipad|macintosh/i.test(navigator.userAgent)?" Если на iPad ничего не появилось — используй «Сохранить в Файлы» или «Скопировать как текст».":""),true); }
+  catch(x){ exOut("Скачать не получилось — попробуй «Скопировать как текст»."); }
+}
+function exCopy(){
+  var data=exData();
+  function fallback(){ var ta=document.createElement("textarea"); ta.value=data; ta.setAttribute("readonly",""); ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0,data.length); var ok=false; try{ ok=document.execCommand("copy"); }catch(x){} ta.remove(); if (ok){ markExported(); exOut("✓ Скопировано ("+Math.round(data.length/1024)+" КБ). Вставь в заметку или сообщение себе.",true); } else exOut("Не удалось скопировать."); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(data).then(function(){ markExported(); exOut("✓ Скопировано ("+Math.round(data.length/1024)+" КБ). Вставь в заметку или сообщение себе.",true); }).catch(fallback); else fallback();
+}
+function importText(txt){ var s=JSON.parse(txt); if (!s.chars||!s.info) throw 0; normalize(s); s.id=uid(); chars[s.id]=s; switchTo(s.id); }
 document.getElementById("imp-in").addEventListener("change", function(e){ var f=e.target.files&&e.target.files[0]; if (!f) return; var r=new FileReader(); r.onload=function(){ try { var s=JSON.parse(r.result); if (!s.chars||!s.info) throw 0; normalize(s); s.id=uid(); chars[s.id]=s; switchTo(s.id); setStatus("Импортирован как новый герой","ok"); } catch(x){ setStatus("Это не файл листа викинга","err"); } e.target.value=""; }; r.readAsText(f); });
 var deferredInstall=null, instBtn=document.getElementById("btn-install");
 var standalone=(window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone;
@@ -955,6 +993,27 @@ window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); 
 if (!standalone && /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) && "ontouchend" in document) instBtn.hidden=false;
 instBtn.addEventListener("click", function(){ if (deferredInstall){ deferredInstall.prompt(); deferredInstall.userChoice.then(function(){ deferredInstall=null; instBtn.hidden=true; }); return; } openModal('<h2>Установка на iPad / iPhone</h2><p>1. Открой эту страницу в Safari.</p><p>2. Нажми «Поделиться» (квадрат со стрелкой).</p><p>3. Выбери «На экран „Домой“».</p><p class="hint">После установки лист открывается как приложение и работает без интернета.</p>'); });
 window.addEventListener("appinstalled", function(){ instBtn.hidden=true; });
+
+/* ---------- анимации ---------- */
+var ringFx="", revealed={}, animMode="on"; try { animMode=localStorage.getItem("aov-anim")||"on"; } catch(e){}
+function applyAnim(){ var red=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches; document.body.classList.toggle("no-anim", animMode==="off" || (animMode==="sys" && red)); }
+function animOff(){ return document.body.classList.contains("no-anim"); }
+function animHtml(){ return '<h2 class="mt">Анимации</h2><div class="row-btns">'+[["on","Включены"],["sys","Как в системе"],["off","Выключены"]].map(function(x){ return '<button type="button" class="tg'+(animMode===x[0]?' on':'')+'" data-anim="'+x[0]+'" aria-pressed="'+(animMode===x[0])+'">'+x[1]+'</button>'; }).join('')+'</div><p class="hint">«Как в системе» выключит анимации, если на устройстве включено «Уменьшение движения».</p>'; }
+function pulse(sel){ if (animOff()) return; requestAnimationFrame(function(){ document.querySelectorAll(sel).forEach(function(el){ el.classList.remove("just"); void el.offsetWidth; el.classList.add("just"); }); }); }
+function modeIn(){ if (animOff()) return; var b=document.body; b.classList.remove("mode-in"); void b.offsetWidth; b.classList.add("mode-in"); clearTimeout(modeIn.t); modeIn.t=setTimeout(function(){ b.classList.remove("mode-in"); }, 1600); }
+var secIO = ("IntersectionObserver" in window) ? new IntersectionObserver(function(ents){ ents.forEach(function(en){ if (en.isIntersecting){ en.target.classList.add("seen"); revealed[en.target.id]=1; secIO.unobserve(en.target); } }); }, {rootMargin:"0px 0px -8% 0px"}) : null;
+function revealSecs(){ app.querySelectorAll(".sec").forEach(function(sc){ if (!secIO || animOff() || revealed[sc.id]) { sc.classList.add("seen"); revealed[sc.id]=1; } else secIO.observe(sc); }); }
+function spinDie(box, r){ if (!box) return; var die=box.querySelector(".die100"); if (animOff() || !die){ box.classList.remove("rolling"); return; }
+  var t0=performance.now(), fin=r.roll===100?"00":String(r.roll);
+  (function tick(now){ if (now-t0<560){ die.textContent=String(rnd(100)).padStart(2,"0"); setTimeout(function(){ requestAnimationFrame(tick); }, 42); return; }
+    die.textContent=fin; box.classList.remove("rolling"); box.classList.add("land");
+    if (r.level==="crit"||r.level==="spec"){ var bs=document.createElement("span"); bs.className="burst"; for (var i=0;i<12;i++){ var sp=document.createElement("i"); sp.textContent=r.level==="crit"?"✦":"✧"; sp.style.setProperty("--a",(i*30)+"deg"); bs.appendChild(sp); } die.appendChild(bs); setTimeout(function(){ bs.remove(); },1100); }
+  })(t0); }
+function countUp(el){ if (!el || animOff()) return; var to=+el.textContent||0, t0=performance.now(); el.classList.add("land"); (function tick(now){ var k=Math.min(1,(now-t0)/450); el.textContent=Math.round(to*k*(2-k)); if (k<1) requestAnimationFrame(tick); else el.textContent=to; })(t0); }
+function bandHtml(){ var kn=state.runes.known, g=A.RUNES.map(function(r){ return '<tspan class="'+(kn.indexOf(r.k)>=0?'kn':'')+'">'+r.g+'</tspan>'; }).join(' ');
+  return '<svg class="cb-band" viewBox="0 0 700 700" aria-hidden="true"><defs><path id="cb-bandp" d="M350 350 m-336 0 a336 336 0 1 1 672 0 a336 336 0 1 1 -672 0"></path></defs><text><textPath href="#cb-bandp" textLength="2080" lengthAdjust="spacing">'+g+' · '+g+'</textPath></text></svg>'; }
+function floatRunes(){ var kn=state.runes.known.length?state.runes.known:["fe","ur","thurs","oss","reid"], h='<div class="cb-float" aria-hidden="true">'; for (var i=0;i<6;i++){ var r=RUNE[kn[i%kn.length]]; h+='<i style="left:'+(18+i*12.5)+'%;animation-delay:'+(i*1.3)+'s">'+(r?r.g:'ᚱ')+'</i>'; } return h+'</div>'; }
+document.getElementById("page-shell").addEventListener("animationend", function(){}, true);
 
 /* ---------- стрелы и камни ---------- */
 function ammoWord(w,cap){ var sl=w&&w.sk==="sling"; return cap?(sl?"Камни":"Стрелы"):(sl?"камень":"стрела"); }
@@ -971,6 +1030,14 @@ function showGaldur(ix){ var sc=state.runes.scripts[ix]; if (!sc) return;
   galEl.hidden=false; document.body.classList.add("gal-open"); reqWake(); }
 galEl.addEventListener("click", function(){ galEl.hidden=true; galEl.innerHTML=""; document.body.classList.remove("gal-open"); });
 document.addEventListener("keydown", function(e){ if (e.key==="Escape" && !galEl.hidden){ galEl.click(); } });
+
+/* ---------- портрет крупно ---------- */
+var zoomEl=document.getElementById("zoom");
+function showZoom(which){ var src=which==="art"?(state.combat&&state.combat.art):state.portrait; if (!src) return; var i=state.info;
+  zoomEl.innerHTML='<figure class="zoom-in"><img src="'+esc(src)+'" alt="'+esc(i.name||"Герой")+'"'+(which==="art"?' style="background:'+esc(state.combat.bg||"#fcfcfa")+'"':'')+'><figcaption><b class="gold">'+esc(i.name||"Герой")+'</b>'+(i.nick?'<span>«'+esc(i.nick)+'»</span>':'')+'</figcaption><span class="gal-hint">нажми, чтобы закрыть</span></figure>';
+  zoomEl.hidden=false; document.body.classList.add("gal-open"); }
+zoomEl.addEventListener("click", function(){ zoomEl.hidden=true; zoomEl.innerHTML=""; document.body.classList.remove("gal-open"); });
+document.addEventListener("keydown", function(e){ if (e.key==="Escape" && !zoomEl.hidden) zoomEl.click(); });
 
 /* ---------- экран не гаснет ---------- */
 var wakeOn=true, wl=null; try { wakeOn = localStorage.getItem("aov-wake")!=="0"; } catch(e){}
@@ -1039,7 +1106,7 @@ function endHtml(){
   if (st===3){
     var t=lastExport();
     h+='<label class="fld"><span>Что было на сессии — строка в сагу (можно оставить пустым)</span><textarea id="end-note" rows="3" placeholder="Например: поход за камнем для капища — тролль убит одним выстрелом">'+esc(endRun.note||"")+'</textarea></label>'+
-      '<p class="hint">Лист сохранит снимок (последние три — в «Герои») и предложит сохранить файл копии. На iPad выбери «Сохранить в Файлы».'+(t?' Прошлая копия — '+daysAgo(t)+'.':'')+'</p>'+
+      '<p class="hint">Лист сохранит снимок (последние три — в «Герои») и откроет окно резервной копии.'+(t?' Прошлая копия — '+daysAgo(t)+'.':'')+'</p>'+
       '<div class="row-btns"><button type="button" class="btn" data-endfinish="1">Записать и сохранить копию</button><button type="button" class="btn ghost" data-endfinish="nocopy">Без файла</button></div>';
   }
   h+='</div><div class="end-nav">'+(st>0?'<button type="button" class="btn ghost small" data-endgo="'+(st-1)+'">← Назад</button>':'<span></span>')+(st<3?'<button type="button" class="btn small" data-endgo="'+(st+1)+'">Далее →</button>':'')+'</div>';
@@ -1067,7 +1134,9 @@ function endClick(d){
 document.getElementById("btn-end").addEventListener("click", function(){ var L=endOptList(), opt={}; L.forEach(function(o){ opt[o[0]] = o[0]==="mp"||o[0]==="dawn"||o[0]==="seid"; }); endRun={step:0, wor:{}, opt:opt, applied:null, log:[], note:""}; xpRun=null; openModal(endHtml()); });
 
 /* ---------- boot ---------- */
-render(); persist(); backupDot(); setTimeout(bootNote, 1200); reqWake();
+var migrated=0; Object.keys(chars).forEach(function(id){ var c=chars[id]; if (!c||!c.runes||c.migRunes2||!A.ASKEL) return; if ((c.info||{}).name==="Аскель Аудунссон" && (c.runes.known||[]).slice().sort().join()==="kaun,oss,reid,thurs"){ c.runes=JSON.parse(JSON.stringify(A.ASKEL.runes)); migrated++; } c.migRunes2=true; });
+applyAnim(); render(); persist(); backupDot(); modeIn();
+if (migrated) setTimeout(function(){ toast("Руны Аскеля обновлены: Каун, Хагаль, Тюр, Ур · новое Кольцо Меткости"); }, 1500); setTimeout(bootNote, 1200); reqWake();
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function(){});
 if ("serviceWorker" in navigator && location.protocol!=="file:") navigator.serviceWorker.register("sw.js").catch(function(){});
 window.__aov = {resolve:resolve, critOf:critOf, specOf:specOf, fumbleFrom:fumbleFrom, catMod:catMod, catAuto:catAuto, hpMax:hpMax, locMax:locMax, dmString:dmString, state:function(){return state;}, parseDice:parseDice, maxDice:maxDice};
